@@ -11,7 +11,6 @@ import logging
 from pathlib import Path
 
 import joblib
-import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split

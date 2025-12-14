@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pathlib import Path
 
 from src.api.pydantic_models import PredictionResponse, Transaction

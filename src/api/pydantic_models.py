@@ -1,7 +1,6 @@
 """Pydantic request/response models for API."""
 
 from pydantic import BaseModel, Field
-from typing import List, Any
 
 
 class Transaction(BaseModel):
