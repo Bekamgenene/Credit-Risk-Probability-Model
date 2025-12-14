@@ -29,6 +29,8 @@ jobs:
           ruff check .
 
       - name: Test
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pip install pytest
           pytest -q
