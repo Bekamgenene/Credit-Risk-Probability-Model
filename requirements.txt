@@ -6,3 +6,5 @@ uvicorn[standard]>=0.25
 pydantic>=2.6
 matplotlib>=3.8
 seaborn>=0.13
+xverse
+woe
