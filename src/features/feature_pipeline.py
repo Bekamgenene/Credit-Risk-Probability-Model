@@ -40,9 +40,7 @@ class Aggregator(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        return X.merge(
-            self._aggs_, left_on=self.id_col, right_index=True, how="left"
-        )
+        return X.merge(self._aggs_, left_on=self.id_col, right_index=True, how="left")
 
 
 class DatetimeExtractor(BaseEstimator, TransformerMixin):
