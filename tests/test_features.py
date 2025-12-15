@@ -1,25 +1,29 @@
 import pandas as pd
-from src.features.rfm_target import create_rfm_features
+from src.features.rfm_target import add_rfm_target
 
 
-def test_rfm_feature_creation():
-    # sample input
+def test_add_rfm_target_basic():
+    # Sample input
     data = pd.DataFrame(
         {
-            "CustomerID": [1, 2],
-            "InvoiceDate": pd.to_datetime(["2025-12-01", "2025-12-10"]),
+            "CustomerId": [1, 2],
+            "TransactionStartTime": pd.to_datetime(
+                ["2025-12-01", "2025-12-10"]
+            ),
             "Amount": [100, 200],
         }
     )
 
-    rfm = create_rfm_features(data)
+    # Run the RFM target function
+    rfm_df = add_rfm_target(data)
 
     # Check that expected columns exist
-    expected_cols = ["CustomerID", "Recency", "Frequency", "Monetary"]
+    expected_cols = ["CustomerId", "Recency", "Frequency", "Monetary", "is_high_risk"]
     for col in expected_cols:
-        assert col in rfm.columns, f"Missing column {col}"
+        assert col in rfm_df.columns, f"Missing column {col}"
 
     # Basic sanity checks
-    assert all(rfm["Recency"] >= 0), "Recency should be non-negative"
-    assert all(rfm["Frequency"] > 0), "Frequency should be positive"
-    assert all(rfm["Monetary"] >= 0), "Monetary should be non-negative"
+    assert all(rfm_df["Recency"] >= 0), "Recency should be non-negative"
+    assert all(rfm_df["Frequency"] > 0), "Frequency should be positive"
+    assert all(rfm_df["Monetary"] >= 0), "Monetary should be non-negative"
+    assert rfm_df["is_high_risk"].isin([0, 1]).all(), "is_high_risk should be binary"
