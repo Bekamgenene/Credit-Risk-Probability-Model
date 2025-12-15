@@ -7,9 +7,7 @@ def test_add_rfm_target_basic():
     data = pd.DataFrame(
         {
             "CustomerId": [1, 2],
-            "TransactionStartTime": pd.to_datetime(
-                ["2025-12-01", "2025-12-10"]
-            ),
+            "TransactionStartTime": pd.to_datetime(["2025-12-01", "2025-12-10"]),
             "Amount": [100, 200],
         }
     )
