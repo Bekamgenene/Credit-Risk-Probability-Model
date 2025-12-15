@@ -25,12 +25,10 @@ jobs:
 
       - name: Lint
         run: |
-          pip install ruff
-          ruff check .
+          pip install flake8
+          flake8 .
 
       - name: Test
-        env:
-          PYTHONPATH: ${{ github.workspace }}
         run: |
           pip install pytest
           pytest -q
