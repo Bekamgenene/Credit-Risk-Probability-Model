@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Hashable, Literal
+from typing import Hashable
 
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -35,11 +35,7 @@ def add_rfm_target(
     n_clusters: int = 3,
     random_state: int = 42,
 ) -> pd.DataFrame:
-    """Return a copy of *df* with RFM metrics and a new ``is_high_risk`` column.
 
-    The high-risk cluster is chosen as the one whose centre has the smallest
-    *Frequency* and *Monetary* values (ties broken by the larger *Recency*).
-    """
     if df.empty:
         raise ValueError("Input DataFrame is empty")
 
@@ -72,7 +68,9 @@ def add_rfm_target(
     # scale & cluster
     scaler = StandardScaler()
     rfm_scaled = scaler.fit_transform(rfm)
-    km = KMeans(n_clusters=n_clusters, random_state=random_state, n_init="auto")
+    km = KMeans(
+        n_clusters=n_clusters, random_state=random_state, n_init="auto"
+    )
     rfm["cluster"] = km.fit_predict(rfm_scaled)
 
     # pick high-risk cluster: lowest Frequency + Monetary, highest Recency

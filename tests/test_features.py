@@ -39,7 +39,9 @@ def test_add_rfm_target_basic():
     assert all(rfm_df["Recency"] >= 0), "Recency should be non-negative"
     assert all(rfm_df["Frequency"] > 0), "Frequency should be positive"
     assert all(rfm_df["Monetary"] >= 0), "Monetary should be non-negative"
-    assert rfm_df["is_high_risk"].isin([0, 1]).all(), "is_high_risk should be binary"
+    assert (
+        rfm_df["is_high_risk"].isin([0, 1]).all()
+    ), "is_high_risk should be binary"
 
     # Ensure at least one customer is marked high risk
     assert (

@@ -10,7 +10,9 @@ from sklearn import metrics
 __all__: Sequence[str] = ["compute_metrics"]
 
 
-def compute_metrics(y_true, y_pred_proba, threshold: float = 0.5) -> Dict[str, float]:
+def compute_metrics(
+    y_true, y_pred_proba, threshold: float = 0.5
+) -> Dict[str, float]:
 
     y_true = np.asarray(y_true)
     y_pred_proba = np.asarray(y_pred_proba)

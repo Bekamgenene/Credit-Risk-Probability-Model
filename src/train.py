@@ -28,7 +28,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--raw-path", type=Path, required=True, help="Path to raw CSV data"
     )
-    parser.add_argument("--model-out", type=Path, default=Path("artifacts/model.pkl"))
+    parser.add_argument(
+        "--model-out", type=Path, default=Path("artifacts/model.pkl")
+    )
     return parser.parse_args()
 
 

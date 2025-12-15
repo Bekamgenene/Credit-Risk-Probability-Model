@@ -32,7 +32,9 @@ def test_compute_metrics():
 
     # Check that expected keys exist
     expected_keys = {"accuracy", "precision", "recall", "f1", "roc_auc"}
-    assert expected_keys.issubset(metrics.keys()), "Missing expected metric keys"
+    assert expected_keys.issubset(
+        metrics.keys()
+    ), "Missing expected metric keys"
 
     # Check all metric values are between 0 and 1
     for v in metrics.values():

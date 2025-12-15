@@ -25,8 +25,12 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Path to CSV with new data",
     )
-    parser.add_argument("--model-path", type=Path, default=Path("artifacts/model.pkl"))
-    parser.add_argument("--out-csv", type=Path, default=Path("predictions.csv"))
+    parser.add_argument(
+        "--model-path", type=Path, default=Path("artifacts/model.pkl")
+    )
+    parser.add_argument(
+        "--out-csv", type=Path, default=Path("predictions.csv")
+    )
     return parser.parse_args()
 
 
@@ -40,7 +44,9 @@ def main() -> None:
     # replicate training preprocessing
     num_cols = X_raw.select_dtypes(include=["number"]).columns.tolist()
     low_card_cols = [
-        c for c in X_raw.columns if c not in num_cols and X_raw[c].nunique() <= 50
+        c
+        for c in X_raw.columns
+        if c not in num_cols and X_raw[c].nunique() <= 50
     ]
     X_enc = pd.get_dummies(X_raw[low_card_cols], drop_first=True)
     X_proc = pd.concat([X_raw[num_cols], X_enc], axis=1)

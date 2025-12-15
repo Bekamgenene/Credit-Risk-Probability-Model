@@ -114,7 +114,9 @@ def plot_correlation_heatmap(df: pd.DataFrame) -> None:
     plt.tight_layout()
 
 
-def boxplot_outliers(df: pd.DataFrame, cols: Sequence[str] | None = None) -> None:
+def boxplot_outliers(
+    df: pd.DataFrame, cols: Sequence[str] | None = None
+) -> None:
     """Boxplots to visually inspect outliers per numeric column."""
     if cols is None:
         cols = df.select_dtypes("number").columns
