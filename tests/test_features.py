@@ -1,6 +1,7 @@
 import pandas as pd
 from src.features.rfm_target import create_rfm_features
 
+
 def test_rfm_feature_creation():
     # sample input
     data = pd.DataFrame(
