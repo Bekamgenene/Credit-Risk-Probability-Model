@@ -22,6 +22,7 @@ TARGET = "FraudResult"
 
 AGG_SUFFIXES = ["_sum", "_mean", "_count", "_std"]
 
+
 # ---------------------------------------------------------------------------
 # Custom transformers
 # ---------------------------------------------------------------------------
@@ -39,7 +40,9 @@ class Aggregator(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        return X.merge(self._aggs_, left_on=self.id_col, right_index=True, how="left")
+        return X.merge(
+            self._aggs_, left_on=self.id_col, right_index=True, how="left"
+        )
 
 
 class DatetimeExtractor(BaseEstimator, TransformerMixin):
@@ -83,18 +86,22 @@ def build_pipeline() -> Pipeline:
         transformers=[
             (
                 "num",
-                Pipeline([
-                    ("imp", SimpleImputer(strategy="median")),
-                    ("sc", StandardScaler()),
-                ]),
+                Pipeline(
+                    [
+                        ("imp", SimpleImputer(strategy="median")),
+                        ("sc", StandardScaler()),
+                    ]
+                ),
                 numeric_features,
             ),
             (
                 "cat",
-                Pipeline([
-                    ("imp", SimpleImputer(strategy="most_frequent")),
-                    ("ohe", OneHotEncoder(handle_unknown="ignore")),
-                ]),
+                Pipeline(
+                    [
+                        ("imp", SimpleImputer(strategy="most_frequent")),
+                        ("ohe", OneHotEncoder(handle_unknown="ignore")),
+                    ]
+                ),
                 categorical_features,
             ),
         ]

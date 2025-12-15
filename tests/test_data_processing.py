@@ -7,10 +7,12 @@ from src.utils.model_utils import compute_metrics
 
 def test_engineer_features(tmp_path: Path):
     # Create sample dataframe
-    df = pd.DataFrame({
-        "FraudResult": [0, 1],
-        "Amount": [100.0, 200.0],
-    })
+    df = pd.DataFrame(
+        {
+            "FraudResult": [0, 1],
+            "Amount": [100.0, 200.0],
+        }
+    )
 
     X, y = engineer_features(df)
 

@@ -3,6 +3,7 @@
 Adds a binary column ``is_high_risk`` that flags the customer cluster with the
 lowest engagement (low frequency & low monetary spend).
 """
+
 from __future__ import annotations
 
 from typing import Hashable, Literal
@@ -25,12 +26,10 @@ def _compute_rfm(
     snapshot_date: pd.Timestamp,
 ) -> pd.DataFrame:
     """Return an RFM frame indexed by ``id_col``."""
-    rfm = (
-        df.groupby(id_col).agg(
-            Recency=(datetime_col, lambda x: (snapshot_date - x.max()).days),
-            Frequency=(datetime_col, "count"),
-            Monetary=(amount_col, "sum"),
-        )
+    rfm = df.groupby(id_col).agg(
+        Recency=(datetime_col, lambda x: (snapshot_date - x.max()).days),
+        Frequency=(datetime_col, "count"),
+        Monetary=(amount_col, "sum"),
     )
     return rfm.astype("float64")
 
@@ -55,10 +54,9 @@ def add_rfm_target(
 
     out = df.copy()
     # parse datetimes and drop any timezone info (keep them tz-naive)
-    out[datetime_col] = (
-        pd.to_datetime(out[datetime_col], errors="coerce")
-        .dt.tz_convert(None)
-    )
+    out[datetime_col] = pd.to_datetime(
+        out[datetime_col], errors="coerce"
+    ).dt.tz_convert(None)
     if out[datetime_col].isna().all():
         raise ValueError("datetime_col could not be parsed to datetime")
 
@@ -78,7 +76,9 @@ def add_rfm_target(
     # scale & cluster
     scaler = StandardScaler()
     rfm_scaled = scaler.fit_transform(rfm)
-    km = KMeans(n_clusters=n_clusters, random_state=random_state, n_init="auto")
+    km = KMeans(
+        n_clusters=n_clusters, random_state=random_state, n_init="auto"
+    )
     rfm["cluster"] = km.fit_predict(rfm_scaled)
 
     # pick high-risk cluster – lowest Freq + Monetary, highest Recency
@@ -93,5 +93,7 @@ def add_rfm_target(
     rfm["is_high_risk"] = (rfm["cluster"] == risk_cluster).astype("int8")
 
     # merge back
-    out = out.merge(rfm[["is_high_risk"]], left_on=id_col, right_index=True, how="left")
+    out = out.merge(
+        rfm[["is_high_risk"]], left_on=id_col, right_index=True, how="left"
+    )
     return out
