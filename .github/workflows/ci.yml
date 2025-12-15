@@ -29,6 +29,8 @@ jobs:
           flake8 .
 
       - name: Test
+        env:
+          PYTHONPATH: src # <-- This is crucial
         run: |
           pip install pytest
-          pytest -q
+          python -m pytest tests -v
