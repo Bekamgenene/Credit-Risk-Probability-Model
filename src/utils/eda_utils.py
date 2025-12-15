@@ -11,7 +11,8 @@ import pandas as pd
 import seaborn as sns
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 ###############################################################################
@@ -66,7 +67,8 @@ def describe_numeric(df: pd.DataFrame) -> pd.DataFrame:
 # Visualization helpers
 ###############################################################################
 
-def plot_num_distributions(df: pd.DataFrame, cols: Sequence[str] | None = None, bins: int = 30) -> None:
+def plot_num_distributions(df: pd.DataFrame,
+                        cols: Sequence[str] | None = None, bins: int = 30) -> None:
     """Plot histograms for numeric columns (or provided subset)."""
     if cols is None:
         cols = df.select_dtypes("number").columns
@@ -81,7 +83,8 @@ def plot_num_distributions(df: pd.DataFrame, cols: Sequence[str] | None = None, 
     plt.tight_layout()
 
 
-def plot_cat_distributions(df: pd.DataFrame, cols: Sequence[str] | None = None, top_n: int = 15) -> None:
+def plot_cat_distributions(df: pd.DataFrame,
+                        cols: Sequence[str] | None = None, top_n: int = 15) -> None:
     """Bar charts for categorical columns (top_n most frequent)."""
     if cols is None:
         cols = df.select_dtypes(exclude="number").columns
@@ -106,7 +109,8 @@ def plot_correlation_heatmap(df: pd.DataFrame) -> None:
     plt.tight_layout()
 
 
-def boxplot_outliers(df: pd.DataFrame, cols: Sequence[str] | None = None) -> None:
+def boxplot_outliers(df: pd.DataFrame,
+                    cols: Sequence[str] | None = None) -> None:
     """Boxplots to visually inspect outliers per numeric column."""
     if cols is None:
         cols = df.select_dtypes("number").columns
@@ -115,7 +119,9 @@ def boxplot_outliers(df: pd.DataFrame, cols: Sequence[str] | None = None) -> Non
     nrows = -(-n // ncols)
     fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 3))
     axes = axes.flatten()
+    
     for ax, col in zip(axes, cols):
         sns.boxplot(x=df[col], ax=ax)
         ax.set_title(col)
     plt.tight_layout()
+    

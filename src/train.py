@@ -1,7 +1,4 @@
 """Model training script.
-
-Usage:
-    python -m src.train --raw-path data/raw/data.csv --model-out artifacts/best_model.pkl
 """
 
 from __future__ import annotations
@@ -21,7 +18,8 @@ import mlflow
 
 from src.data_processing import engineer_features, load_raw
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, 
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +46,8 @@ def main() -> None:
     num_cols = X.select_dtypes(include=["number"]).columns.tolist()
 
     # low-cardinality categoricals (<=50 unique values)
-    low_card_cols = [c for c in X.columns if X[c].dtype == "object" and X[c].nunique() <= 50]
+    low_card_cols = [c for c in X.columns if X[c].dtype == "object"
+                    and X[c].nunique() <= 50]
 
     # encode low-cardinality categoricals
     X_enc = pd.get_dummies(X[low_card_cols], drop_first=True)
@@ -121,12 +120,6 @@ def main() -> None:
                 best_name = name
 
     logger.info("Best model: %s (AUC=%.4f)", best_name, best_auc)
-
-    # register best model in MLflow Model Registry
-    with mlflow.start_run(run_name=f"register_{best_name}") as run:
-        mlflow.sklearn.log_model(
-            best_estimator, "model", registered_model_name="credit-risk-best"
-        )
 
     # save best model locally
     args.model_out.parent.mkdir(parents=True, exist_ok=True)

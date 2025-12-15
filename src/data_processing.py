@@ -9,7 +9,8 @@ from typing import Tuple
 import pandas as pd
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, 
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def load_raw(path: str | Path) -> pd.DataFrame:
@@ -35,5 +36,6 @@ def engineer_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     logger.info("Starting feature engineering")
     y = df["FraudResult"].astype(int)
     X = df.drop(columns=["FraudResult"])
-    logger.info("Generated feature matrix with shape %s", X.shape)
+    logger.info("Generated feature matrix with shape %s", 
+                X.shape)
     return X, y
