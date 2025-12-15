@@ -45,6 +45,23 @@ credit-risk-model/
     ```bash
     pytest -q
     ```
+## Model Training & Tracking (Task-5)
+Install updated dependencies (adds mlflow & pytest):
+
+* pip install -r requirements.txt
+Launch the MLflow tracking UI (optional):
+
+* mlflow ui  # open http://127.0.0.1:5000
+Train & tune models (LogReg, Random Forest, GBM) and log runs to MLflow:
+
+* python -m src.train \
+    --raw-path data/raw/data.csv \
+    --model-out artifacts/best_model.pkl
+Grid-search selects the best hyper-parameters (AUC on a hold-out set) and registers the top model under the MLflow Model Registry name credit-risk-best.
+
+Re-run the full test suite at any time:
+
+pytest -q
 
 ## Development Guidelines
 
