@@ -1,8 +1,8 @@
 """FastAPI service exposing model predictions (loads model from MLflow Model Registry).
 
 This module attempts to load the best model from the MLflow Model Registry at startup
-using environment variables. If registry loading fails the service falls back to a
-local pickled artifact (useful for local development).
+using the environment variables documented in README.md. If registry loading fails the
+service falls back to a local pickled artifact (useful for local development).
 """
 
 from __future__ import annotations
