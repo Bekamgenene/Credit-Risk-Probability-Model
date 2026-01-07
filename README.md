@@ -1,180 +1,216 @@
 # Credit Risk Probability Model
 
-This repository contains the code base for building, training, and deploying a credit-risk scoring service for **Bati Bank**.
+This repository contains the codebase for building, training, tracking, and deploying a **credit risk probability scoring service** for **Bati Bank**. The project is designed with strong emphasis on **regulatory compliance, interpretability, and production readiness**.
+
+---
+
+## Project Overview
+
+The Credit Risk Probability Model estimates the likelihood that a borrower will default on a loan. It provides an end-to-end pipeline covering:
+
+* Data preprocessing and feature engineering
+* Exploratory data analysis (EDA)
+* Model training, evaluation, and selection
+* Experiment tracking and model registry using MLflow
+* Containerized deployment with Docker
+* A RESTful prediction API using FastAPI
+
+The system balances **predictive performance** with **model transparency**, making it suitable for regulated financial environments.
+
+---
 
 ## Project Structure
 
-````text
+```text
 credit-risk-model/
 ├── .github/workflows/ci.yml        # CI pipeline running tests & linting
 ├── data/                           # <- Git-ignored raw & processed data
 │   ├── raw/                        # Raw data files
 │   └── processed/                  # Cleaned / feature-engineered data
 ├── notebooks/
-│   └── 1.0-eda.ipynb              # Exploratory data analysis
+│   └── 1.0-eda.ipynb               # Exploratory data analysis
 ├── src/
 │   ├── __init__.py
-│   ├── data_processing.py         # Feature engineering utilities
-│   ├── train.py                   # Model training script (CLI)
-│   ├── predict.py                 # Batch inference script (CLI)
+│   ├── data_processing.py          # Feature engineering utilities
+│   ├── train.py                    # Model training script (CLI)
+│   ├── predict.py                  # Batch inference script (CLI)
 │   └── api/
-│       ├── main.py                # FastAPI app exposing prediction endpoint
-│       └── pydantic_models.py     # Request/response schemas
+│       ├── main.py                 # FastAPI app exposing prediction endpoint
+│       └── pydantic_models.py      # Request/response schemas
 ├── tests/
-│   └── test_data_processing.py    # Unit tests
-├── Dockerfile                     # Container image definition
-├── docker-compose.yml             # Local orchestration (API + model)
+│   └── test_data_processing.py     # Unit tests
+├── Dockerfile                      # Container image definition
+├── docker-compose.yml              # Local orchestration (API + model)
 ├── requirements.txt               # Python dependencies
 ├── .gitignore                     # Files/directories excluded from VCS
-└── README.md                      # Project docs
-
-## Quickstart
-
-1.  Build Docker image:
-
-    ```bash
-    docker compose build
-    ```
-2.  Start the API locally (hot-reloaded):
-
-    ```bash
-    docker compose up
-    ```
-3.  Run unit tests:
-
-    ```bash
-    pytest -q
-    ```
-## Model Training & Tracking (Task-5)
-Install updated dependencies (adds mlflow & pytest):
-
-* pip install -r requirements.txt
-Launch the MLflow tracking UI (optional):
-
-* mlflow ui  # open http://127.0.0.1:5000
-Train & tune models (LogReg, Random Forest, GBM) and log runs to MLflow:
-
-* python -m src.train \
-    --raw-path data/raw/data.csv \
-    --model-out artifacts/best_model.pkl
-Grid-search selects the best hyper-parameters (AUC on a hold-out set) and registers the top model under the MLflow Model Registry name credit-risk-best.
-
-Re-run the full test suite at any time:
-
-pytest -q
-
-## Deploying & serving models from MLflow Model Registry
-
-The API supports loading models directly from an MLflow Model Registry. This allows
-centralized model promotion and hot-swapping of production models without rebuilding
-containers.
-
-Configuration (environment variables):
-
-- `MLFLOW_TRACKING_URI` (optional): URL of the MLflow tracking server (e.g. `http://localhost:5000`).
-  If set, the service will attempt to load a registered model from the registry.
-- `MLFLOW_MODEL_NAME` (optional): Registry model name. Defaults to `credit-risk-best`.
-- `MLFLOW_MODEL_STAGE` (optional): Model stage to load from the registry. Defaults to `Production`.
-- `LOCAL_MODEL_PATH` (optional): Local fallback path for a pickled model artifact. Defaults to `/app/artifacts/best_model.pkl`.
-
-Model selection logic
-
-1. If `MLFLOW_TRACKING_URI` is provided the service constructs a model URI of the
-   form `models:/<MLFLOW_MODEL_NAME>/<MLFLOW_MODEL_STAGE>` (for example
-   `models:/credit-risk-best/Production`) and tries to load it with
-   `mlflow.sklearn.load_model`.
-2. If registry loading fails (e.g. network/authorization or model not found) the
-   service falls back to loading a local file at `LOCAL_MODEL_PATH` (useful for
-   development/docker-compose workflows).
-
-Example (docker-compose.override.yml env snippet):
-
-```yaml
-services:
-  api:
-    environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-      - MLFLOW_MODEL_NAME=credit-risk-best
-      - MLFLOW_MODEL_STAGE=Production
-      - LOCAL_MODEL_PATH=/app/artifacts/best_model.pkl
+└── README.md                      # Project documentation
 ```
-
-Notes
-
-- The training script logs models to MLflow using `mlflow.sklearn.log_model`, so
-  loading via `mlflow.sklearn.load_model("models:/...")` preserves the sklearn
-  estimator API (including `predict_proba`).
-- Make sure the API container has network access to the MLflow tracking server and
-  the model is registered under the given name and stage.
-- If you prefer to use mlflow.pyfunc for arbitrary pyfunc models, switch the load call to:
-  `mlflow.pyfunc.load_model(model_uri)` and adapt prediction handling for the pyfunc output.
-
-## Development Guidelines
-
-* Use **feature branches** + PRs targeting `main`.
-* All new code must include unit-tests and pass `pytest` & `ruff` linters.
-* Keep notebooks lightweight; move reusable code to `src/`.
-* Sensitive artefacts (models, data) must not be committed. Use DVC or S3.
-
-# Credit Scoring Business Understanding
-
-This section summarizes core business and regulatory considerations for building a credit scoring model for this project.
-
-## 1. Why Basel II’s emphasis on risk measurement demands an interpretable, well-documented model
-
-* **Capital & regulatory accountability:** Basel II ties regulatory capital to measured credit risk. Lenders must demonstrate how models quantify risk so regulators can assess capital adequacy. Clear, documented models support audits and capital calculations.
-* **Model governance and validation:** Basel II expects robust model validation, back‑testing, and ongoing monitoring. Interpretable models make it easier to validate assumptions, trace decisions, and detect model drift.
-* **Transparency to stakeholders:** Regulators, auditors, and senior management require reproducible evidence of how risk estimates are produced. An interpretable model simplifies explanations for provisioning, pricing, and risk limits.
-
-## 2. Why a proxy variable is necessary and the business risks of using a proxy
-
-* **Necessity of a proxy:** When a true ‘default’ label is unavailable, we must construct a proxy (e.g., 90+ days past due, charge‑off, bankruptcy, or a composite of delinquency and recovery events). This creates a target that approximates credit failure for supervised learning.
-* **Types of commonly used proxies:** severe delinquency (30/60/90+ days), account write‑off, bankruptcy filing, significant drop in repayment behavior, or behavioral-clustered failure labels.
-* **Business risks and caveats:**
-
-  * *Label noise & measurement error:* A proxy may misclassify customers (false positives/negatives), reducing model accuracy and leading to poor credit decisions.
-  * *Temporal mismatch:* Proxy definitions (e.g., 90+ days) introduce censoring and timing bias: recent accounts may not have had time to default.
-  * *Policy and operational risk:* Policies driven by proxy-based scores (e.g., automated declines) can unfairly reject good customers or accept bad ones.
-  * *Regulatory scrutiny:* Regulators may challenge models built on weak or opaque proxies—requiring additional justification, stress testing, and conservative capital buffers.
-  * *Economic feedback loops:* Rejecting or accepting based on an imperfect proxy can change future observed defaults (selection bias), complicating model retraining and performance measurement.
-
-## 3. Key trade-offs: simple interpretable models vs. complex high-performance models
-
-* **Interpretability & compliance**
-
-  * *Simple models (Logistic Regression + WoE):* Highly interpretable, easier to document, validate, and justify to regulators. Weight‑of‑Evidence (WoE) binning gives stable, monotonic relationships and simplifies scorecard deployment.
-  * *Complex models (Gradient Boosting, ensembles):* Often attain higher predictive power but are harder to explain in human‑readable terms. Explainability tools (SHAP, LIME) help but may not fully satisfy regulatory expectations.
-* **Performance vs. operational risk**
-
-  * *Simple model advantages:* Lower risk of overfitting, easier to monitor and maintain, predictable behavior under distributional shifts, simpler to implement in legacy production pipelines.
-  * *Complex model advantages:* Better at capturing nonlinearities and interactions, improving discrimination and profit lift — especially when features are abundant and richly informative.
-* **Stability & monitoring**
-
-  * Simple models tend to be more stable over time and less sensitive to small changes in feature distributions. Complex models may require more frequent retraining and a stronger monitoring framework.
-* **Fairness and bias**
-
-  * Complex models can amplify subtle biases in data. Interpretable models make it easier to detect, explain, and mitigate disparate impacts on protected groups.
-
-## 4. Practical recommendation for a regulated financial context
-
-1. **Start with an interpretable baseline:** Build a well‑documented Logistic Regression scorecard using WoE binning as the primary production model. This satisfies regulatory preference for transparency and forms a conservative, auditable baseline.
-2. **Parallel evaluation of complex models:** Train Gradient Boosting or other high‑performance models in parallel for performance benchmarking and to extract additional signals (feature importances, nonlinear patterns). Use them to inform feature engineering in the interpretable model or as an advisory layer in decisioning.
-3. **Robust proxy definition and sensitivity analysis:** Carefully document the proxy construction, test alternative proxy definitions, and report how sensitive model outcomes are to the proxy choice.
-4. **Strong governance and validation:** Maintain comprehensive documentation (data lineage, preprocessing, hyperparameters, validation metrics, back‑tests), implement a model monitoring pipeline (population stability, PSI, AUC over time), and schedule periodic independent validations.
-5. **Explainability toolkit:** Adopt explainability tools (WoE plots, scorecards, SHAP summaries) to provide both global and local explanations. For complex models, provide SHAP‑based narratives but anchor decisions in the interpretable baseline.
-6. **Operational controls:** Use conservative decision thresholds, manual review for risky edge cases, and human‑in‑the‑loop workflows when the model is uncertain.
-
-## 5. Summary
-
-* Basel II increases the need for measurable, auditable, and well‑documented risk models. In the absence of true default labels, proxies are necessary but introduce label noise and regulatory risk. For deployment in a regulated environment, the recommended approach is a transparent scorecard as the main production model, supplemented by complex models for insight and performance benchmarking, backed by rigorous validation, monitoring, and governance.
 
 ---
 
-*Deliverable:* this `README.md` section is prepared to be included in the project repository under the title **Credit Scoring Business Understanding**. If you want, I can also add a short bullet list of recommended proxy definitions and a checklist for documentation and validation.
+## Quickstart
+
+### 1. Build Docker Image
+
+```bash
+docker compose build
+```
+
+### 2. Start the API Locally (Hot Reload)
+
+```bash
+docker compose up
+```
+
+### 3. Run Unit Tests
+
+```bash
+pytest -q
+```
+
+---
+
+## Model Training & Experiment Tracking (Task 5)
+
+The training pipeline supports multiple candidate models:
+
+* Logistic Regression
+* Random Forest
+* Gradient Boosting Machine (GBM)
+
+Models are tuned using grid search and evaluated using **AUC on a hold-out validation set**.
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Launch MLflow UI (Optional)
+
+```bash
+mlflow ui
+```
+
+### Train and Register Models
+
+```bash
+python -m src.train \
+  --raw-path data/raw/data.csv \
+  --model-out artifacts/best_model.pkl
+```
+
+The best-performing model is registered in the MLflow Model Registry as:
+
+```
+credit-risk-best
+```
+
+---
+
+## Deploying & Serving Models from MLflow Model Registry
+
+The API supports loading models directly from the **MLflow Model Registry**, enabling centralized governance and seamless promotion of models across stages.
+
+### Environment Configuration
+
+* `MLFLOW_TRACKING_URI` (optional): MLflow server URL (e.g. `http://localhost:5000`)
+* `MLFLOW_MODEL_NAME` (optional): Registry model name (default: `credit-risk-best`)
+* `MLFLOW_MODEL_STAGE` (optional): Model stage (default: `Production`)
+* `LOCAL_MODEL_PATH` (optional): Local fallback model path
+
+### Model Loading Logic
+
+1. If `MLFLOW_TRACKING_URI` is set, the API loads:
+
+```
+models:/<MLFLOW_MODEL_NAME>/<MLFLOW_MODEL_STAGE>
+```
+
+2. If registry loading fails, the API falls back to the local model path.
+
+This ensures robustness across development and production environments.
+
+---
+
+## Development Guidelines
+
+* Use **feature branches** and Pull Requests targeting `main`
+* All new code must include unit tests
+* Code must pass `pytest` and `ruff` checks
+* Keep notebooks lightweight; move reusable logic to `src/`
+* Do **not** commit sensitive data or trained models
+* Use DVC, object storage, or MLflow artifacts for large files
+
+---
+
+## Credit Scoring Business Understanding
+
+### Basel II and Model Interpretability
+
+Basel II links regulatory capital requirements to measured credit risk. Therefore:
+
+* Models must be transparent and auditable
+* Assumptions and risk estimates must be well-documented
+* Validation, back-testing, and monitoring are mandatory
+
+Interpretable models simplify regulatory review and governance.
+
+---
+
+### Use of Proxy Variables for Default
+
+When true default labels are unavailable, proxy variables are required, such as:
+
+* 30/60/90+ days past due
+* Account write-off or charge-off
+* Bankruptcy filing
+* Severe repayment deterioration
+
+#### Risks
+
+* Label noise and misclassification
+* Timing bias and censoring
+* Policy and operational risk
+* Regulatory scrutiny
+* Feedback loops and selection bias
+
+Careful proxy definition and sensitivity analysis are essential.
+
+---
+
+### Model Trade-offs
+
+**Simple Models (Logistic Regression + WoE)**
+
+* High interpretability
+* Easier validation and monitoring
+* Stable performance
+
+**Complex Models (GBM, Ensembles)**
+
+* Higher predictive power
+* Harder to explain and govern
+* Require advanced explainability tools (e.g., SHAP)
+
+---
+
+### Recommended Approach
+
+1. Deploy an interpretable Logistic Regression scorecard as the primary model
+2. Evaluate complex models in parallel for benchmarking
+3. Carefully document proxy definitions
+4. Maintain strong governance and monitoring
+5. Apply conservative thresholds and human-in-the-loop controls
+
+---
+
+## Summary
+
+This repository provides a production-ready, regulator-aware credit risk scoring system. It combines strong engineering practices with transparent modeling to meet both business and compliance requirements.
+
+---
 
 ## License
 
 MIT
-````
-
-
